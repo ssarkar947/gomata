@@ -306,9 +306,11 @@ function updateCartUI() {
     `;
     elements.checkoutBtn.style.pointerEvents = 'none';
     elements.checkoutBtn.style.opacity = '0.5';
+    elements.checkoutBtn.disabled = true;
   } else {
     elements.checkoutBtn.style.pointerEvents = 'auto';
     elements.checkoutBtn.style.opacity = '1';
+    elements.checkoutBtn.disabled = false;
     
     elements.cartItemsList.innerHTML = cart.map(item => `
       <div class="cart-item">
@@ -620,18 +622,8 @@ function validateEmail(email) {
   return re.test(String(email).toLowerCase());
 }
 
-// Mock Checkout Simulation
+// Redirect to Checkout Page
 function handleCheckout() {
   if (cart.length === 0) return;
-  
-  showToast("Initiating checkout... Redirecting to secure gateway.");
-  
-  // Empty cart drawer after some delay simulating payment
-  setTimeout(() => {
-    showToast("Order placed successfully! Gomata Desi Cow Ghee is on its way.");
-    cart = [];
-    saveCartToLocalStorage();
-    updateCartUI();
-    closeCart();
-  }, 2500);
+  window.location.href = 'checkout.html';
 }

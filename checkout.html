@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <meta name="theme-color" content="#65371B">
+  <meta name="description" content="Secure checkout for Go Mata Original Ghee. Complete your order of pure, granular Desi Cow Ghee. Sourced from Maa Tara Ghee, West Bengal.">
+  
+  <title>Secure Checkout - GO MATA ORIGINAL GHEE</title>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Main Stylesheet (Shared) -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="checkout-body-page">
+
+  <!-- Simplified Header for Focused Checkout -->
+  <header class="checkout-header">
+    <div class="container checkout-header-container">
+      <a href="index.html" class="checkout-back-link" id="checkout-back-to-home">
+        <i class="fas fa-arrow-left"></i> <span>Back to Shop</span>
+      </a>
+      <a href="index.html" class="checkout-logo" id="checkout-brand-logo">
+        <img src="assets/brand_logo_text.png" alt="GO MATA ORIGINAL GHEE Logo">
+      </a>
+      <div class="checkout-secure-indicator">
+        <i class="fas fa-lock"></i> <span>Secure Checkout</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Checkout Grid Container -->
+  <main class="container section-padding" style="padding-top: var(--space-md); padding-bottom: var(--space-xl);">
+    <div class="checkout-grid">
+      
+      <!-- Left Column: Shipping & Payment Details -->
+      <section class="checkout-forms-section">
+        <form id="checkout-main-form" novalidate>
+          
+          <!-- Step 1: Customer Contact -->
+          <div class="checkout-step-card" id="step-customer-contact">
+            <h3 class="step-title"><span class="step-num">1</span> Customer Contact</h3>
+            <div class="form-row-grid">
+              <div class="form-group">
+                <label for="contact-email">Email Address <span class="required">*</span></label>
+                <div class="input-with-icon">
+                  <i class="far fa-envelope input-icon"></i>
+                  <input type="email" id="contact-email" name="email" placeholder="you@example.com" required>
+                </div>
+                <span class="error-message" id="email-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="contact-phone">Phone Number <span class="required">*</span></label>
+                <div class="input-with-icon font-mono">
+                  <span class="input-prefix">+91</span>
+                  <input type="tel" id="contact-phone" name="phone" placeholder="9876543210" pattern="[6789][0-9]{9}" maxlength="10" required style="padding-left: 55px;">
+                </div>
+                <span class="error-message" id="phone-error"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Shipping Address -->
+          <div class="checkout-step-card" id="step-shipping-address">
+            <h3 class="step-title"><span class="step-num">2</span> Shipping Address</h3>
+            
+            <div class="form-group">
+              <label for="shipping-name">Full Name <span class="required">*</span></label>
+              <div class="input-with-icon">
+                <i class="far fa-user input-icon"></i>
+                <input type="text" id="shipping-name" name="fullname" placeholder="Enter your full name" required>
+              </div>
+              <span class="error-message" id="name-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="shipping-address-1">Street Address <span class="required">*</span></label>
+              <div class="input-with-icon">
+                <i class="fas fa-home input-icon"></i>
+                <input type="text" id="shipping-address-1" name="address1" placeholder="House/Flat No., Building, Street Name" required>
+              </div>
+              <span class="error-message" id="address-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="shipping-address-2">Landmark / Locality <span class="text-muted">(Optional)</span></label>
+              <div class="input-with-icon">
+                <i class="fas fa-map-marker-alt input-icon"></i>
+                <input type="text" id="shipping-address-2" name="address2" placeholder="e.g. Near Tara Temple or School">
+              </div>
+            </div>
+
+            <div class="form-row-grid tri">
+              <div class="form-group">
+                <label for="shipping-city">City <span class="required">*</span></label>
+                <input type="text" id="shipping-city" name="city" placeholder="e.g. Kolkata" required>
+                <span class="error-message" id="city-error"></span>
+              </div>
+
+              <div class="form-group">
+                <label for="shipping-state">State <span class="required">*</span></label>
+                <select id="shipping-state" name="state" required>
+                  <option value="" disabled selected>Select State</option>
+                  <option value="West Bengal">West Bengal</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Jammu & Kashmir">Jammu & Kashmir</option>
+                </select>
+                <span class="error-message" id="state-error"></span>
+              </div>
+
+              <div class="form-group">
+                <label for="shipping-zip">ZIP / Pincode <span class="required">*</span></label>
+                <input type="text" id="shipping-zip" name="zip" placeholder="700001" pattern="[0-9]{6}" maxlength="6" required>
+                <span class="error-message" id="zip-error"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Shipping Method -->
+          <div class="checkout-step-card" id="step-shipping-method">
+            <h3 class="step-title"><span class="step-num">3</span> Shipping Method</h3>
+            <div class="shipping-methods-group">
+              
+              <!-- Option A: Standard Delivery -->
+              <label class="custom-radio-card active" id="label-shipping-standard">
+                <input type="radio" name="shipping_method" value="standard" checked>
+                <span class="radio-indicator"></span>
+                <span class="radio-content">
+                  <span class="radio-title-row">
+                    <span class="method-title">Standard Delivery</span>
+                    <span class="method-cost" id="standard-shipping-cost">FREE</span>
+                  </span>
+                  <span class="method-desc">Delivered in 5-7 working days. Sourced fresh from Maa Tara Ghee, West Bengal. (Free on orders above ₹999, else ₹80)</span>
+                </span>
+              </label>
+
+              <!-- Option B: Express Delivery -->
+              <label class="custom-radio-card" id="label-shipping-express">
+                <input type="radio" name="shipping_method" value="express">
+                <span class="radio-indicator"></span>
+                <span class="radio-content">
+                  <span class="radio-title-row">
+                    <span class="method-title">Express Courier Delivery</span>
+                    <span class="method-cost">₹150</span>
+                  </span>
+                  <span class="method-desc">Prioritized shipping. Delivered in 1-2 working days to major cities.</span>
+                </span>
+              </label>
+
+            </div>
+          </div>
+
+          <!-- Step 4: Payment Simulation -->
+          <div class="checkout-step-card" id="step-payment">
+            <h3 class="step-title"><span class="step-num">4</span> Payment Method</h3>
+            <div class="payment-tabs">
+              <button type="button" class="payment-tab-btn active" data-target="payment-upi" id="tab-upi">
+                <i class="fas fa-mobile-alt"></i> UPI / QR Code
+              </button>
+              <button type="button" class="payment-tab-btn" data-target="payment-card" id="tab-card">
+                <i class="far fa-credit-card"></i> Card Payment
+              </button>
+              <button type="button" class="payment-tab-btn" data-target="payment-cod" id="tab-cod">
+                <i class="fas fa-hand-holding-rupee"></i> Cash on Delivery
+              </button>
+            </div>
+
+            <!-- Tab Content: UPI -->
+            <div class="payment-tab-content active" id="payment-upi">
+              <div class="upi-sim-box">
+                <div class="qr-container">
+                  <!-- Simulated Interactive QR Code -->
+                  <div class="qr-box">
+                    <div class="qr-code-placeholder" id="simulated-qr">
+                      <div class="qr-corner top-left"></div>
+                      <div class="qr-corner top-right"></div>
+                      <div class="qr-corner bottom-left"></div>
+                      <div class="qr-center-logo">
+                        <i class="fas fa-cow" style="color: var(--clr-primary); font-size: 1.5rem;"></i>
+                      </div>
+                      <i class="fas fa-qrcode" style="font-size: 5rem; color: var(--clr-primary); opacity: 0.15;"></i>
+                    </div>
+                    <span class="qr-hint">Scan with GPay, PhonePe, or Paytm</span>
+                  </div>
+                  <div class="qr-text-info">
+                    <h4>Pay Using QR Code</h4>
+                    <p>Scan the QR code with any UPI app to transfer the amount instantly. Once paid, confirm below.</p>
+                    <div class="upi-id-badge">
+                      <span>UPI ID: <strong>gomataoriginal@okaxis</strong></span>
+                      <button type="button" class="copy-btn" onclick="copyUPI()" id="copy-upi-btn"><i class="far fa-copy"></i></button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="or-divider"><span>OR ENTER UPI ID</span></div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="upi-id-input">Your UPI ID <span class="required">*</span></label>
+                  <div class="input-with-button">
+                    <input type="text" id="upi-id-input" placeholder="e.g. mobile@upi" pattern=".+@.+">
+                    <button type="button" class="btn btn-outline" id="verify-upi-btn" onclick="verifyUPI()">Verify</button>
+                  </div>
+                  <span class="success-message" id="upi-success"></span>
+                  <span class="error-message" id="upi-error"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content: Card -->
+            <div class="payment-tab-content" id="payment-card">
+              <div class="card-form-grid">
+                
+                <div class="form-group col-full">
+                  <label for="card-number">Card Number <span class="required">*</span></label>
+                  <div class="input-with-icon font-mono">
+                    <i class="far fa-credit-card input-icon"></i>
+                    <input type="text" id="card-number" placeholder="4111 2222 3333 4444" pattern="[0-9\s]{16,19}" maxlength="19">
+                  </div>
+                  <span class="error-message" id="card-num-error"></span>
+                </div>
+
+                <div class="form-group">
+                  <label for="card-expiry">Expiry Date <span class="required">*</span></label>
+                  <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" class="font-mono">
+                  <span class="error-message" id="card-expiry-error"></span>
+                </div>
+
+                <div class="form-group">
+                  <label for="card-cvv">CVV <span class="required">*</span></label>
+                  <div class="input-with-icon font-mono">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="card-cvv" placeholder="123" maxlength="3">
+                  </div>
+                  <span class="error-message" id="card-cvv-error"></span>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Tab Content: COD -->
+            <div class="payment-tab-content" id="payment-cod">
+              <div class="cod-info-box">
+                <i class="fas fa-hand-holding-rupee cod-icon"></i>
+                <div class="cod-text">
+                  <h4>Cash on Delivery (COD)</h4>
+                  <p>Pay with cash, UPI or card to the courier delivery agent when your order arrives. A minor handling fee of <strong>₹30</strong> applies to COD orders to support packaging logistics.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Checkout Disclaimer & Guarantee -->
+          <div class="checkout-guarantee">
+            <div class="guarantee-icon"><i class="fas fa-shield-halved"></i></div>
+            <div class="guarantee-text">
+              <h4>Gomata Trust Guarantee</h4>
+              <p>Your order is processed securely. We guarantee 100% pure granular Desi Cow Ghee sourced fresh from Maa Tara Ghee, West Bengal. (Lic. No. 22823039000092)</p>
+            </div>
+          </div>
+
+        </form>
+      </section>
+
+      <!-- Right Column: Order Summary & Coupon Code -->
+      <section class="checkout-summary-section">
+        <div class="summary-sticky-card">
+          <h3 class="summary-card-title">Order Summary</h3>
+          
+          <!-- Cart Items List (Dynamic) -->
+          <div class="summary-items-list" id="checkout-summary-items">
+            <!-- Dynamic checkout items -->
+          </div>
+
+          <!-- Coupon Code Entry -->
+          <div class="coupon-section">
+            <label for="coupon-input">Promo Code</label>
+            <div class="input-with-button">
+              <input type="text" id="coupon-input" placeholder="Enter coupon code" style="text-transform: uppercase;">
+              <button type="button" class="btn btn-outline" id="apply-coupon-btn">Apply</button>
+            </div>
+            <span class="coupon-feedback" id="coupon-feedback"></span>
+            
+            <div class="suggested-coupons">
+              <button type="button" class="suggest-tag" onclick="suggestPromo('GOMATA10')">GOMATA10 (10% OFF)</button>
+              <button type="button" class="suggest-tag" onclick="suggestPromo('FREESHIP')">FREESHIP (Free Standard Shipping)</button>
+            </div>
+          </div>
+
+          <!-- Cost Calculations -->
+          <div class="cost-calculations">
+            <div class="calc-row">
+              <span>Subtotal</span>
+              <span id="summary-subtotal">₹0</span>
+            </div>
+            
+            <div class="calc-row text-green" id="discount-row" style="display: none;">
+              <span>Promo Discount (<span id="discount-percent">0%</span>)</span>
+              <span id="summary-discount">-₹0</span>
+            </div>
+            
+            <div class="calc-row">
+              <span>Shipping Speed Cost</span>
+              <span id="summary-shipping">₹0</span>
+            </div>
+
+            <div class="calc-row" id="cod-fee-row" style="display: none;">
+              <span>COD Handling Charge</span>
+              <span>₹30</span>
+            </div>
+            
+            <div class="calc-row total">
+              <span>Grand Total</span>
+              <span id="summary-grand-total">₹0</span>
+            </div>
+          </div>
+
+          <!-- Trust Seals -->
+          <div class="checkout-seals">
+            <div class="seal-item">
+              <i class="fas fa-certificate text-gold"></i>
+              <span>FSSAI Lic. No.<br><strong>22823039000092</strong></span>
+            </div>
+            <div class="seal-item">
+              <i class="fas fa-hands-holding text-green"></i>
+              <span>Supporting Local<br><strong>Women Farmers</strong></span>
+            </div>
+          </div>
+
+          <!-- Complete Order CTA -->
+          <button type="button" class="btn btn-primary btn-block checkout-submit-btn" id="place-order-cta">
+            Place Order Securely <i class="fas fa-check-double"></i>
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Interactive Loading Screen Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner-box">
+      <div class="spinner-logo">
+        <i class="fas fa-cow"></i>
+      </div>
+      <div class="spinner-ring"></div>
+      <h3>Connecting to Gateway</h3>
+      <p id="loading-status-text">Simulating secure digital payment transfer...</p>
+    </div>
+  </div>
+
+  <!-- Success Receipt Modal -->
+  <div class="success-modal-overlay" id="success-modal-overlay">
+    <div class="success-modal-container" id="success-modal">
+      <div class="receipt-checkmark-wrapper">
+        <div class="checkmark-circle">
+          <i class="fas fa-check"></i>
+        </div>
+      </div>
+      
+      <h2 class="receipt-main-title">Order Placed Successfully!</h2>
+      <p class="receipt-subtitle">Your pure Desi Cow Ghee is being freshly packaged by local women cooperatives at Maa Tara Ghee.</p>
+      
+      <!-- Receipt Box -->
+      <div class="receipt-box">
+        <div class="receipt-header">
+          <div class="receipt-logo">
+            <img src="assets/brand_logo_text.png" alt="GO MATA ORIGINAL GHEE">
+          </div>
+          <div class="receipt-meta">
+            <div>Order ID: <strong id="receipt-order-id" class="font-mono">GM-2026-9812</strong></div>
+            <div>Date: <span id="receipt-date">May 23, 2026</span></div>
+          </div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Receipt items -->
+        <div class="receipt-items" id="receipt-items-list">
+          <!-- Filled dynamically -->
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Receipt totals -->
+        <div class="receipt-totals">
+          <div class="receipt-row">
+            <span>Subtotal</span>
+            <span id="receipt-subtotal">₹1,350</span>
+          </div>
+          <div class="receipt-row text-green" id="receipt-discount-row">
+            <span>Promo Discount</span>
+            <span id="receipt-discount">-₹135</span>
+          </div>
+          <div class="receipt-row">
+            <span>Shipping & Handling</span>
+            <span id="receipt-shipping">FREE</span>
+          </div>
+          <div class="receipt-row total">
+            <span>Total Paid Amount</span>
+            <span id="receipt-grand-total">₹1,215</span>
+          </div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Receipt shipping info -->
+        <div class="receipt-shipping-details">
+          <h4>Delivery Address</h4>
+          <p id="receipt-customer-name"><strong>John Doe</strong></p>
+          <p id="receipt-address-details">123 Street Name, Landmark, Kolkata, West Bengal - 700001</p>
+          <p id="receipt-phone">Phone: +91 9876543210</p>
+          <p id="receipt-shipping-mode" style="margin-top: 8px; font-size: 0.75rem; font-weight: 600; color: var(--clr-primary); text-transform: uppercase;">
+            <i class="fas fa-truck"></i> Standard Shipping (5-7 days)
+          </p>
+        </div>
+
+        <div class="receipt-stamp">
+          <i class="fas fa-shield-halved"></i> 100% Pure & Traditional
+        </div>
+      </div>
+
+      <div class="receipt-social-msg">
+        <p><i class="fas fa-heart" style="color: #c94a4a;"></i> <strong>Thank you!</strong> Your order directly supports the mutual dependence between local women cooperatives and protected Desi Cows in rural West Bengal.</p>
+      </div>
+
+      <a href="index.html" class="btn btn-primary btn-block" id="receipt-home-btn" style="justify-content: center; height: 50px;">
+        Return to Homepage
+      </a>
+    </div>
+  </div>
+
+  <!-- JavaScript Files -->
+  <script src="checkout.js"></script>
+</body>
+</html>
