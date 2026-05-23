@@ -1,7 +1,7 @@
 // GO MATA ORIGINAL GHEE - Checkout Page JS
 
 // Supabase Client Initialization
-let supabase = null;
+let supabaseClient = null;
 const isSupabaseConfigured = () => {
   return typeof SUPABASE_CONFIG !== 'undefined' && 
          SUPABASE_CONFIG.url && 
@@ -11,7 +11,7 @@ const isSupabaseConfigured = () => {
 };
 
 if (isSupabaseConfigured()) {
-  supabase = supabaseJs.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+  supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 }
 
 // Application State
@@ -670,8 +670,8 @@ async function handleOrderSubmission() {
 
   // Save to Supabase (non-blocking for UI simulation timing)
   let dbSavePromise = Promise.resolve();
-  if (isSupabaseConfigured() && supabase) {
-    dbSavePromise = supabase.from('orders').insert([orderData])
+  if (isSupabaseConfigured() && supabaseClient) {
+    dbSavePromise = supabaseClient.from('orders').insert([orderData])
       .then(({ data, error }) => {
         if (error) throw error;
         console.log('Order successfully written to Supabase:', orderNumber);

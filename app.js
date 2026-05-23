@@ -1,7 +1,7 @@
 // Gomata Original Ghee - E-commerce Logic (app.js)
 
 // Supabase Client Initialization
-let supabase = null;
+let supabaseClient = null;
 const isSupabaseConfigured = () => {
   return typeof SUPABASE_CONFIG !== 'undefined' && 
          SUPABASE_CONFIG.url && 
@@ -11,7 +11,7 @@ const isSupabaseConfigured = () => {
 };
 
 if (isSupabaseConfigured()) {
-  supabase = supabaseJs.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+  supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 }
 
 // Local Product Database Fallback
@@ -119,9 +119,9 @@ let PRODUCTS_DB = {};
 
 // Load products from Supabase or fallback
 async function loadProductsCatalog() {
-  if (isSupabaseConfigured() && supabase) {
+  if (isSupabaseConfigured() && supabaseClient) {
     try {
-      const { data, error } = await supabase.from('products').select('*');
+      const { data, error } = await supabaseClient.from('products').select('*');
       if (error) throw error;
       
       if (data && data.length > 0) {

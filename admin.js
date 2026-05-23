@@ -1,7 +1,7 @@
 // GO MATA Admin Panel Logic (admin.js)
 
 // Initialize Supabase Client
-let supabase = null;
+let supabaseClient = null;
 const isSupabaseConfigured = () => {
   return typeof SUPABASE_CONFIG !== 'undefined' && 
          SUPABASE_CONFIG.url && 
@@ -11,7 +11,7 @@ const isSupabaseConfigured = () => {
 };
 
 if (isSupabaseConfigured()) {
-  supabase = supabaseJs.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+  supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 } else {
   alert('Warning: Supabase keys are not configured in config.js. Admin login will be disabled until valid keys are supplied.');
 }
@@ -84,10 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- AUTHENTICATION FLOW ---
 function setupAuthListener() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
 
   // Listen to auth changes
-  supabase.auth.onAuthStateChange((event, session) => {
+  supabaseClient.auth.onAuthStateChange((event, session) => {
     console.log('Auth state changed:', event);
     if (session) {
       views.loginGate.style.display = 'none';
@@ -109,7 +109,7 @@ function setupAuthListener() {
     const password = views.loginPassword.value;
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) throw error;
       showToast('Signed in successfully!', 'success');
     } catch (err) {
@@ -119,14 +119,14 @@ function setupAuthListener() {
 
   // Logout button trigger
   views.logoutBtn.addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     showToast('Logged out successfully.', 'success');
   });
 }
 
 // --- DATA ACCESS & CORRELATION ---
 async function loadStoreData() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
 
   try {
     await Promise.all([
@@ -141,7 +141,7 @@ async function loadStoreData() {
 }
 
 async function loadOrders() {
-  const { data, error } = await supabase.from('orders')
+  const { data, error } = await supabaseClient.from('orders')
     .select('*')
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -152,7 +152,7 @@ async function loadOrders() {
 }
 
 async function loadProducts() {
-  const { data, error } = await supabase.from('products')
+  const { data, error } = await supabaseClient.from('products')
     .select('*')
     .order('created_at', { ascending: true });
   if (error) throw error;
@@ -363,10 +363,10 @@ window.toggleOrderDetails = function(orderId) {
 };
 
 window.updateOrderStatus = async function(orderId, newStatus) {
-  if (!supabase) return;
+  if (!supabaseClient) return;
 
   try {
-    const { error } = await supabase.from('orders')
+    const { error } = await supabaseClient.from('orders')
       .update({ status: newStatus })
       .eq('id', orderId);
       
@@ -519,7 +519,7 @@ async function handleFormSubmit(e) {
   e.preventDefault();
   views.formError.textContent = '';
   
-  if (!supabase) return;
+  if (!supabaseClient) return;
 
   // Compile size rows
   const sizes = [];
@@ -567,7 +567,7 @@ async function handleFormSubmit(e) {
   saveBtn.disabled = true;
 
   try {
-    const { data, error } = await supabase.from('products')
+    const { data, error } = await supabaseClient.from('products')
       .upsert([productData]);
       
     if (error) throw error;
@@ -585,11 +585,11 @@ async function handleFormSubmit(e) {
 }
 
 window.deleteProduct = async function(productId) {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   if (!confirm(`Are you absolutely sure you want to delete the product ID "${productId}"? This action is permanent.`)) return;
 
   try {
-    const { error } = await supabase.from('products')
+    const { error } = await supabaseClient.from('products')
       .delete()
       .eq('id', productId);
       
