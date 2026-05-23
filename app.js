@@ -1,7 +1,21 @@
 // Gomata Original Ghee - E-commerce Logic (app.js)
 
-// Initial Product Database for Modal details
-const PRODUCTS_DB = {
+// Supabase Client Initialization
+let supabase = null;
+const isSupabaseConfigured = () => {
+  return typeof SUPABASE_CONFIG !== 'undefined' && 
+         SUPABASE_CONFIG.url && 
+         !SUPABASE_CONFIG.url.includes('your-project-id') &&
+         SUPABASE_CONFIG.anonKey &&
+         !SUPABASE_CONFIG.anonKey.includes('your-anon-public-key');
+};
+
+if (isSupabaseConfigured()) {
+  supabase = supabaseJs.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+}
+
+// Local Product Database Fallback
+const LOCAL_PRODUCTS_FALLBACK = {
   'desi-cow-ghee-jar': {
     id: 'desi-cow-ghee-jar',
     title: 'Go Mata Original Ghee (Desi Cow Ghee)',
@@ -100,6 +114,114 @@ const PRODUCTS_DB = {
   }
 };
 
+// Global Catalog object
+let PRODUCTS_DB = {};
+
+// Load products from Supabase or fallback
+async function loadProductsCatalog() {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase.from('products').select('*');
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        PRODUCTS_DB = {};
+        data.forEach(p => {
+          PRODUCTS_DB[p.id] = {
+            id: p.id,
+            title: p.title,
+            price: p.price,
+            originalPrice: p.original_price,
+            image: p.image,
+            rating: parseFloat(p.rating || 5),
+            reviews: parseInt(p.reviews || 0),
+            description: p.description,
+            details: p.details,
+            nutrition: p.nutrition,
+            sizes: p.sizes
+          };
+        });
+        console.log('Successfully loaded products from Supabase');
+        renderHomepageProducts();
+        return;
+      }
+    } catch (e) {
+      console.error('Supabase fetch failed, falling back to local dataset:', e);
+    }
+  }
+
+  // Fallback
+  PRODUCTS_DB = LOCAL_PRODUCTS_FALLBACK;
+  renderHomepageProducts();
+}
+
+// Render dynamic storefront cards
+function renderHomepageProducts() {
+  const grid = document.querySelector('.product-grid');
+  if (!grid) return;
+
+  const products = Object.values(PRODUCTS_DB);
+  grid.innerHTML = products.map(product => {
+    // Calculate initial discount
+    const initialPrice = product.sizes[0].price;
+    const discountPct = product.originalPrice ? (product.originalPrice - initialPrice) / product.originalPrice : 0;
+    
+    return `
+      <article class="product-card" data-product-id="${product.id}" data-discount-pct="${discountPct}" id="card-${product.id}">
+        ${discountPct > 0 ? `<span class="product-badge-tag sale-badge">${Math.round(discountPct * 100)}% OFF</span>` : ''}
+        <div class="product-image-container">
+          <img src="${product.image}" alt="${product.title}">
+          <button class="product-quick-view-btn" aria-label="Quick View ${product.title}" id="qv-${product.id}">Quick Shop</button>
+        </div>
+        <div class="product-info">
+          <div class="product-rating">
+            <div class="stars">
+              ${'<i class="fas fa-star"></i>'.repeat(Math.floor(product.rating))}
+              ${product.rating % 1 !== 0 ? '<i class="fas fa-star-half-alt"></i>' : ''}
+            </div>
+            <span class="rating-count">(${product.reviews} reviews)</span>
+          </div>
+          <h3 class="product-card-title">
+            <a href="#" id="title-${product.id}">${product.title}</a>
+          </h3>
+          <p class="product-desc-excerpt">
+            ${product.description.substring(0, 120)}...
+          </p>
+          
+          <div class="product-selector">
+            <span style="font-size: 0.7rem; font-weight: 600; color: var(--clr-primary); display: block; margin-bottom: 6px;">SELECT SIZE:</span>
+            <div class="size-select-wrap">
+              ${product.sizes.map((sz, idx) => `
+                <button class="size-pill ${idx === 0 ? 'active' : ''}" data-price="${sz.price}">${sz.label}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="product-price-row">
+            <span class="price-current">₹${initialPrice.toLocaleString('en-IN')}</span>
+            ${product.originalPrice ? `<span class="price-original">₹${product.originalPrice.toLocaleString('en-IN')}</span>` : ''}
+          </div>
+          
+          <button class="add-to-cart-btn" id="atc-${product.id}">
+            <i class="fas fa-shopping-basket"></i> Add to Cart
+          </button>
+        </div>
+      </article>
+    `;
+  }).join('');
+  
+  // Re-bind listeners for the newly injected dynamic elements
+  document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    btn.addEventListener('click', handleAddToCartFromCard);
+  });
+  
+  document.querySelectorAll('.product-quick-view-btn').forEach(btn => {
+    btn.addEventListener('click', handleQuickView);
+  });
+
+  setupSizeSelectors();
+}
+
 // Application State
 let cart = [];
 let currentTestimonialIndex = 0;
@@ -139,8 +261,9 @@ const elements = {
 };
 
 // --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   loadCartFromLocalStorage();
+  await loadProductsCatalog();
   setupEventListeners();
   initTestimonialSlider();
 });

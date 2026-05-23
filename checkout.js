@@ -1,5 +1,19 @@
 // GO MATA ORIGINAL GHEE - Checkout Page JS
 
+// Supabase Client Initialization
+let supabase = null;
+const isSupabaseConfigured = () => {
+  return typeof SUPABASE_CONFIG !== 'undefined' && 
+         SUPABASE_CONFIG.url && 
+         !SUPABASE_CONFIG.url.includes('your-project-id') &&
+         SUPABASE_CONFIG.anonKey &&
+         !SUPABASE_CONFIG.anonKey.includes('your-anon-public-key');
+};
+
+if (isSupabaseConfigured()) {
+  supabase = supabaseJs.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+}
+
 // Application State
 let cart = [];
 let appliedCoupon = null;
@@ -597,7 +611,7 @@ document.getElementById('simulated-qr').addEventListener('click', () => {
 });
 
 // --- SUBMIT ORDER & GATEWAY SIMULATION ---
-function handleOrderSubmission() {
+async function handleOrderSubmission() {
   if (!validateForm()) {
     // Scroll to the first error
     const firstError = document.querySelector('.is-invalid, .error-message:not(:empty)');
@@ -606,6 +620,36 @@ function handleOrderSubmission() {
     }
     return;
   }
+
+  // Generate order number
+  const orderNumber = 'GM-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
+
+  // Compile order details
+  const orderData = {
+    order_number: orderNumber,
+    customer_email: elements.emailInput.value.trim(),
+    customer_phone: elements.phoneInput.value.trim(),
+    customer_name: elements.nameInput.value.trim(),
+    shipping_address: elements.address1Input.value.trim() + (elements.address2Input.value.trim() ? ', ' + elements.address2Input.value.trim() : ''),
+    city: elements.cityInput.value.trim(),
+    state: elements.stateInput.value,
+    zip: elements.zipInput.value.trim(),
+    shipping_method: document.querySelector('input[name="shipping_method"]:checked').value,
+    shipping_cost: shippingCost,
+    payment_method: currentPaymentMethod,
+    payment_status: currentPaymentMethod === 'cod' ? 'Pending COD' : 'Paid',
+    subtotal: subtotal,
+    discount: discountAmount,
+    grand_total: grandTotal,
+    items: cart.map(item => ({
+      productId: item.productId,
+      title: item.title,
+      size: item.size,
+      price: item.price,
+      qty: item.qty
+    })),
+    status: 'Pending'
+  };
 
   // Launch simulated secure payment screen overlay
   elements.loadingOverlay.classList.add('active');
@@ -624,18 +668,30 @@ function handleOrderSubmission() {
     }, stage.time);
   });
 
+  // Save to Supabase (non-blocking for UI simulation timing)
+  let dbSavePromise = Promise.resolve();
+  if (isSupabaseConfigured() && supabase) {
+    dbSavePromise = supabase.from('orders').insert([orderData])
+      .then(({ data, error }) => {
+        if (error) throw error;
+        console.log('Order successfully written to Supabase:', orderNumber);
+      })
+      .catch(err => {
+        console.error('Supabase write failure. Order processed locally:', err);
+      });
+  }
+
   // Open Receipt Modal after simulation completes
-  setTimeout(() => {
+  setTimeout(async () => {
+    await dbSavePromise; // Ensure DB try finished before resolving UI
     elements.loadingOverlay.classList.remove('active');
-    triggerSuccessReceipt();
+    triggerSuccessReceipt(orderNumber);
   }, 3000);
 }
 
 // --- TRIGGER SUCCESS RECEIPT ---
-function triggerSuccessReceipt() {
-  // Generate random order ID
-  const randomOrder = 'GM-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
-  elements.receiptOrderId.textContent = randomOrder;
+function triggerSuccessReceipt(orderNumber) {
+  elements.receiptOrderId.textContent = orderNumber;
 
   // Format today's date
   const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };

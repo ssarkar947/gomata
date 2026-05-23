@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <meta name="theme-color" content="#65371B">
+  <meta name="description" content="Go Mata Admin Store Management Panel">
+  
+  <title>Admin Dashboard - GO MATA ORIGINAL GHEE</title>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Custom Admin Stylesheet -->
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+  <!-- 1. LOGIN GATE VIEW -->
+  <div class="admin-login-overlay" id="login-gate">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="assets/brand_logo_text.png" alt="GO MATA Logo">
+      </div>
+      <h3>Store Management Login</h3>
+      <p>Log in using your authorized Supabase Admin credentials.</p>
+      
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">Admin Email</label>
+          <input type="email" id="login-email" placeholder="admin@gomataghee.com" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" required>
+        </div>
+        <span class="login-error-msg" id="login-error"></span>
+        <button type="submit" class="btn btn-admin-primary">Sign In Securely <i class="fas fa-sign-in-alt"></i></button>
+      </form>
+      <div class="login-footer-hint">
+        <i class="fas fa-shield-halved"></i> Protected by Supabase Auth Row-Level Security.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MAIN ADMIN APPLICATION VIEW -->
+  <div class="admin-app-container" id="admin-app" style="display: none;">
+    
+    <!-- Top Navigation Bar -->
+    <header class="admin-top-nav">
+      <div class="admin-nav-left">
+        <img src="assets/brand_logo_text.png" alt="GO MATA Logo" class="admin-logo-img">
+        <span class="admin-panel-tag">Management Console</span>
+      </div>
+      <div class="admin-nav-right">
+        <div class="admin-user-profile">
+          <i class="far fa-user-circle"></i>
+          <span id="admin-user-email">admin@gomataghee.com</span>
+        </div>
+        <button class="logout-btn" id="logout-btn" title="Sign Out">
+          <i class="fas fa-power-off"></i> <span>Sign Out</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Sidebar + Content Shell -->
+    <div class="admin-shell">
+      
+      <!-- Left Sidebar Tabs Navigation -->
+      <aside class="admin-sidebar">
+        <nav class="sidebar-nav">
+          <button class="nav-tab-link active" data-tab="tab-overview">
+            <i class="fas fa-chart-line"></i> Dashboard Overview
+          </button>
+          <button class="nav-tab-link" data-tab="tab-orders">
+            <i class="fas fa-shopping-basket"></i> Customer Orders
+            <span class="badge-pending" id="pending-orders-badge" style="display: none;">0</span>
+          </button>
+          <button class="nav-tab-link" data-tab="tab-products">
+            <i class="fas fa-boxes-stacked"></i> Products Catalog
+          </button>
+        </nav>
+        <div class="sidebar-footer">
+          <p>FSSAI No. 22823039000092</p>
+          <p>Maa Tara Ghee, WB</p>
+        </div>
+      </aside>
+
+      <!-- Right Main Content Panels -->
+      <main class="admin-main-content">
+        
+        <!-- ==================== TAB A: OVERVIEW ==================== -->
+        <section class="tab-panel active" id="tab-overview">
+          <div class="panel-header">
+            <h2>Dashboard Overview</h2>
+            <p>Real-time analytics for Go Mata Original Ghee e-commerce sales.</p>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon income"><i class="fas fa-rupee-sign"></i></div>
+              <div class="stat-details">
+                <span class="stat-label">Gross Revenue</span>
+                <h3 class="stat-value" id="stat-revenue">₹0</h3>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orders"><i class="fas fa-shopping-cart"></i></div>
+              <div class="stat-details">
+                <span class="stat-label">Total Orders</span>
+                <h3 class="stat-value" id="stat-orders-count">0</h3>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon basket"><i class="fas fa-basket-shopping"></i></div>
+              <div class="stat-details">
+                <span class="stat-label">Average Order Value</span>
+                <h3 class="stat-value" id="stat-aov">₹0</h3>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon delivery"><i class="fas fa-truck-ramp-box"></i></div>
+              <div class="stat-details">
+                <span class="stat-label">Pending Shipments</span>
+                <h3 class="stat-value" id="stat-pending-count">0</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-double-column">
+            <!-- Popular Products Sales List -->
+            <div class="dash-block">
+              <h3>Popular Products Distribution</h3>
+              <div class="popular-products-list" id="popular-products-distribution">
+                <!-- Dynamically generated bars -->
+              </div>
+            </div>
+
+            <!-- Recent Activity / Info -->
+            <div class="dash-block">
+              <h3>Store Activity summary</h3>
+              <div class="activity-timeline" id="recent-activity-timeline">
+                <div class="timeline-item">
+                  <div class="timeline-marker success"></div>
+                  <div class="timeline-content">
+                    <h4>Supabase Database Synchronized</h4>
+                    <p class="time">Just now</p>
+                    <p>Connected securely to Supabase PostgreSQL cluster with active RLS policies.</p>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-marker info"></div>
+                  <div class="timeline-content">
+                    <h4>FSSAI Regulatory Compliance Active</h4>
+                    <p class="time">System check</p>
+                    <p>All items configured with official label manufacturer details from Maa Tara Ghee, West Bengal.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB B: ORDERS ==================== -->
+        <section class="tab-panel" id="tab-orders">
+          <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
+            <div>
+              <h2>Customer Orders</h2>
+              <p>Review details, track payments, and update shipping lifecycle statuses.</p>
+            </div>
+            <button class="btn btn-outline-admin" onclick="loadOrders()" id="refresh-orders-btn">
+              <i class="fas fa-rotate"></i> Refresh
+            </button>
+          </div>
+
+          <!-- Orders Table Box -->
+          <div class="table-container">
+            <table class="admin-table" id="orders-table">
+              <thead>
+                <tr>
+                  <th>Order No.</th>
+                  <th>Customer</th>
+                  <th>Date &amp; Time</th>
+                  <th>Items Purchased</th>
+                  <th>Total Price</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table-body">
+                <!-- Dynamically filled -->
+                <tr>
+                  <td colspan="8" class="text-center py-md">Loading orders...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==================== TAB C: PRODUCTS ==================== -->
+        <section class="tab-panel" id="tab-products">
+          <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
+            <div>
+              <h2>Products Catalog</h2>
+              <p>Add new products, adjust pricing sizes, and update descriptions.</p>
+            </div>
+            <button class="btn btn-admin-primary" id="add-product-btn">
+              <i class="fas fa-plus"></i> Add New Product
+            </button>
+          </div>
+
+          <!-- Products Grid / Table -->
+          <div class="table-container">
+            <table class="admin-table" id="products-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Product ID</th>
+                  <th>Title</th>
+                  <th>Base Price</th>
+                  <th>Size Variants</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body">
+                <!-- Dynamically filled -->
+                <tr>
+                  <td colspan="6" class="text-center py-md">Loading catalog...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== PRODUCT FORM MODAL ==================== -->
+  <div class="admin-modal-overlay" id="product-modal">
+    <div class="admin-modal-container">
+      <div class="modal-header">
+        <h3 id="modal-form-title">Add New Product</h3>
+        <button class="close-modal-btn" id="close-form-btn">&times;</button>
+      </div>
+      
+      <form id="product-catalog-form">
+        <div class="modal-body">
+          <div class="modal-form-grid">
+            
+            <!-- Basic Fields -->
+            <div class="form-group">
+              <label for="prod-id">Product ID <span class="required">*</span></label>
+              <input type="text" id="prod-id" placeholder="e.g. cow-ghee-premium" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="prod-title">Product Title <span class="required">*</span></label>
+              <input type="text" id="prod-title" placeholder="e.g. Premium Handcrafted Ghee" required>
+            </div>
+
+            <div class="form-group">
+              <label for="prod-price">Base Price (INR) <span class="required">*</span></label>
+              <input type="number" id="prod-price" placeholder="1350" required>
+            </div>
+
+            <div class="form-group">
+              <label for="prod-orig-price">Original Price (INR) <span class="text-muted">(Optional)</span></label>
+              <input type="number" id="prod-orig-price" placeholder="1500">
+            </div>
+
+            <div class="form-group col-full">
+              <label for="prod-image">Image File / Asset URL <span class="required">*</span></label>
+              <input type="text" id="prod-image" placeholder="assets/product_jar.jpg" required>
+            </div>
+
+            <div class="form-group col-full">
+              <label for="prod-desc">Product Description <span class="required">*</span></label>
+              <textarea id="prod-desc" rows="3" placeholder="Describe the product details..." required></textarea>
+            </div>
+
+            <!-- Size Variants Section (Dynamic) -->
+            <div class="form-group col-full size-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label>Size / Price Variants <span class="required">*</span></label>
+                <button type="button" class="btn-mini-add" onclick="addFormSizeRow()"><i class="fas fa-plus"></i> Add Option</button>
+              </div>
+              <div class="size-rows-container" id="form-size-rows">
+                <!-- Row template added dynamically -->
+              </div>
+            </div>
+
+            <!-- Regulatory Specifications -->
+            <div class="form-group col-full">
+              <h4 class="form-sub-divider">Product Info Specifications</h4>
+            </div>
+
+            <div class="form-group">
+              <label for="spec-ingredients">Ingredients</label>
+              <input type="text" id="spec-ingredients" placeholder="Milk Fat (From Cow Milk)">
+            </div>
+
+            <div class="form-group">
+              <label for="spec-allergen">Allergen Info</label>
+              <input type="text" id="spec-allergen" placeholder="Contains Milk">
+            </div>
+
+            <div class="form-group">
+              <label for="spec-fssai">FSSAI License No.</label>
+              <input type="text" id="spec-fssai" placeholder="22823039000092">
+            </div>
+
+            <div class="form-group">
+              <label for="spec-mfg">Manufactured By</label>
+              <input type="text" id="spec-mfg" placeholder="Maa Tara Ghee, West Bengal">
+            </div>
+
+            <!-- Nutritional Info (JSON Fields) -->
+            <div class="form-group col-full">
+              <h4 class="form-sub-divider">Nutritional Values (per 100g)</h4>
+            </div>
+
+            <div class="form-group">
+              <label for="nutr-energy">Energy (kcal)</label>
+              <input type="text" id="nutr-energy" placeholder="897.48 kcal">
+            </div>
+
+            <div class="form-group">
+              <label for="nutr-fat">Total Fat (g)</label>
+              <input type="text" id="nutr-fat" placeholder="99.7 g">
+            </div>
+
+            <div class="form-group">
+              <label for="nutr-sat-fat">Saturated Fat (g)</label>
+              <input type="text" id="nutr-sat-fat" placeholder="62.80 g">
+            </div>
+
+            <div class="form-group">
+              <label for="nutr-chol">Cholesterol (mg)</label>
+              <input type="text" id="nutr-chol" placeholder="250 mg">
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <span class="form-error-msg" id="form-error"></span>
+          <button type="button" class="btn btn-outline-admin" id="btn-cancel-form">Cancel</button>
+          <button type="submit" class="btn btn-admin-primary" id="btn-save-form">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dynamic Success Toast Container -->
+  <div class="admin-toast-container" id="admin-toast-container"></div>
+
+  <!-- Supabase JS SDK + Config Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
