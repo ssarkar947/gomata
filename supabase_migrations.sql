@@ -40,3 +40,36 @@ ON coupons FOR ALL
 TO authenticated 
 USING (true) 
 WITH CHECK (true);
+
+-- 5. FIX ORDERS RLS POLICIES (Ensure anyone can place orders, admin can manage)
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public insert access on orders" ON orders;
+CREATE POLICY "Allow public insert access on orders" 
+ON orders FOR INSERT 
+TO public 
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow admin read/write access on orders" ON orders;
+CREATE POLICY "Allow admin read/write access on orders" 
+ON orders FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- 6. FIX PRODUCTS RLS POLICIES (Ensure anyone can view products, admin can manage)
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public read-only access on products" ON products;
+CREATE POLICY "Allow public read-only access on products" 
+ON products FOR SELECT 
+TO public 
+USING (true);
+
+DROP POLICY IF EXISTS "Allow admin write access on products" ON products;
+CREATE POLICY "Allow admin write access on products" 
+ON products FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
