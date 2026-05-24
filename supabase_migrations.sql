@@ -73,3 +73,34 @@ TO authenticated
 USING (true) 
 WITH CHECK (true);
 
+
+-- 7. STORAGE BUCKET CREATION & SECURITY POLICIES
+-- Create the product-images bucket if it does not exist
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('product-images', 'product-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Set up policies for storage objects
+-- Policy 7.1: Allow public read-only access to files inside product-images bucket
+DROP POLICY IF EXISTS "Allow public read-only access to product-images" ON storage.objects;
+CREATE POLICY "Allow public read-only access to product-images"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'product-images');
+
+-- Policy 7.2: Allow authenticated admins to upload files to product-images bucket
+DROP POLICY IF EXISTS "Allow authenticated admin to upload to product-images" ON storage.objects;
+CREATE POLICY "Allow authenticated admin to upload to product-images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'product-images');
+
+-- Policy 7.3: Allow authenticated admins to update/delete files inside product-images bucket
+DROP POLICY IF EXISTS "Allow authenticated admin to modify product-images" ON storage.objects;
+CREATE POLICY "Allow authenticated admin to modify product-images"
+ON storage.objects FOR ALL
+TO authenticated
+USING (bucket_id = 'product-images')
+WITH CHECK (bucket_id = 'product-images');
+
+
