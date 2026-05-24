@@ -2,6 +2,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Automatically compile config.js from env variables / .env file on startup
+require('./generate-config');
+
 const PORT = 3000;
 
 const MIME_TYPES = {
