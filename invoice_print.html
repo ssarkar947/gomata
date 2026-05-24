@@ -276,6 +276,12 @@
       try {
         const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
         
+        // Wait for session to be restored from LocalStorage
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+          throw new Error('Unauthorized: No admin login session found. Please log in to the Admin Dashboard first.');
+        }
+        
         // 3. Fetch Order
         const { data: order, error } = await supabaseClient.from('orders')
           .select('*')
