@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build": "node generate-config.js",
+    "start": "node server.js"
+  },
   "dependencies": {
     "jimp": "^1.6.1"
   }
