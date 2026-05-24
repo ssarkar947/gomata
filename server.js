@@ -20,7 +20,8 @@ const server = http.createServer((req, res) => {
   console.log(`${req.method} ${req.url}`);
 
   // Normalize URL path to prevent directory traversal
-  let filePath = '.' + req.url;
+  const pathname = req.url.split('?')[0];
+  let filePath = '.' + pathname;
   if (filePath === './') {
     filePath = './index.html';
   }
