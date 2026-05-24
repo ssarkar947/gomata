@@ -17,7 +17,7 @@ if (isSupabaseConfigured()) {
 // Application State
 let cart = [];
 let appliedCoupon = null;
-let currentPaymentMethod = 'upi'; // 'upi', 'card', 'cod'
+let currentPaymentMethod = 'online'; // 'online', 'cod'
 
 // Price Calculation State
 let subtotal = 0;
@@ -146,8 +146,7 @@ function setupListeners() {
       document.getElementById(targetId).classList.add('active');
       
       // Update payment state
-      if (targetId === 'payment-upi') currentPaymentMethod = 'upi';
-      else if (targetId === 'payment-card') currentPaymentMethod = 'card';
+      if (targetId === 'payment-razorpay') currentPaymentMethod = 'online';
       else if (targetId === 'payment-cod') currentPaymentMethod = 'cod';
       
       calculateTotals();
@@ -474,76 +473,6 @@ function validateZip(zip) {
   return re.test(zip.trim());
 }
 
-function validateExpiry(exp) {
-  const re = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
-  if (!re.test(exp)) return false;
-  
-  // Make sure it is not in the past
-  const parts = exp.split('/');
-  const expMonth = parseInt(parts[0], 10);
-  const expYear = parseInt('20' + parts[1], 10);
-  
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
-  
-  if (expYear < currentYear) return false;
-  if (expYear === currentYear && expMonth < currentMonth) return false;
-  
-  return true;
-}
-
-// UPI Simulators
-let isUPIVerified = false;
-
-window.verifyUPI = function() {
-  const upiId = elements.upiInput.value.trim();
-  elements.upiError.textContent = '';
-  elements.upiSuccess.textContent = '';
-  elements.upiInput.classList.remove('is-invalid');
-
-  if (!upiId || !upiId.includes('@')) {
-    elements.upiInput.classList.add('is-invalid');
-    elements.upiError.textContent = 'Please enter a valid UPI ID (e.g. mobile@upi)';
-    isUPIVerified = false;
-    return;
-  }
-
-  // Simulate contact verification loading
-  const verifyBtn = document.getElementById('verify-upi-btn');
-  const originalText = verifyBtn.textContent;
-  verifyBtn.textContent = 'Verifying...';
-  verifyBtn.disabled = true;
-
-  setTimeout(() => {
-    verifyBtn.textContent = originalText;
-    verifyBtn.disabled = false;
-    
-    // Hardcoded demo check for standard handles
-    const validHandles = ['okaxis', 'okhdfcbank', 'okicici', 'ybl', 'upi', 'paytm', 'sbi'];
-    const suffix = upiId.split('@')[1];
-    
-    if (validHandles.includes(suffix.toLowerCase()) || suffix.length >= 3) {
-      elements.upiSuccess.textContent = 'UPI ID Verified (Name: GOMATA GUEST CUSTOMER)';
-      isUPIVerified = true;
-    } else {
-      elements.upiInput.classList.add('is-invalid');
-      elements.upiError.textContent = 'UPI Handle verification failed. Please check and try again.';
-      isUPIVerified = false;
-    }
-  }, 1000);
-};
-
-window.copyUPI = function() {
-  navigator.clipboard.writeText('gomataoriginal@okaxis').then(() => {
-    const copyBtn = document.getElementById('copy-upi-btn');
-    copyBtn.innerHTML = '<i class="fas fa-check" style="color: var(--clr-green);"></i>';
-    setTimeout(() => {
-      copyBtn.innerHTML = '<i class="far fa-copy"></i>';
-    }, 2000);
-  });
-};
-
 // --- FORM GENERAL VALIDATOR ---
 function validateForm() {
   let isValid = true;
@@ -592,64 +521,100 @@ function validateForm() {
     isValid = false;
   }
 
-  // Step 4: Payment Validation based on Tab
-  if (currentPaymentMethod === 'upi') {
-    const upiVal = elements.upiInput.value.trim();
-    // If they scanned the QR code, we accept it without forcing manual ID verification
-    if (!upiVal && !document.getElementById('simulated-qr').classList.contains('scanned-sim')) {
-      elements.upiInput.classList.add('is-invalid');
-      elements.upiError.textContent = 'Please verify your UPI ID or scan the QR Code above to proceed.';
-      isValid = false;
-    } else if (upiVal && !isUPIVerified) {
-      elements.upiInput.classList.add('is-invalid');
-      elements.upiError.textContent = 'Please click "Verify" to validate your UPI ID before ordering.';
-      isValid = false;
-    }
-  } else if (currentPaymentMethod === 'card') {
-    const cardNum = elements.cardNumber.value.replace(/\D/g, '');
-    if (cardNum.length < 16) {
-      elements.cardNumber.classList.add('is-invalid');
-      document.getElementById('card-num-error').textContent = 'Enter a valid 16-digit card number.';
-      isValid = false;
-    }
-
-    if (!validateExpiry(elements.cardExpiry.value)) {
-      elements.cardExpiry.classList.add('is-invalid');
-      document.getElementById('card-expiry-error').textContent = 'Enter valid expiry MM/YY.';
-      isValid = false;
-    }
-
-    const cvv = elements.cardCvv.value.replace(/\D/g, '');
-    if (cvv.length !== 3) {
-      elements.cardCvv.classList.add('is-invalid');
-      document.getElementById('card-cvv-error').textContent = 'Enter 3-digit CVV.';
-      isValid = false;
-    }
-  }
-
   return isValid;
 }
 
-// Simulate QR scanning interaction when clicking the simulated QR code box
-document.getElementById('simulated-qr').addEventListener('click', () => {
-  const qrBox = document.getElementById('simulated-qr');
-  qrBox.classList.add('scanned-sim');
-  qrBox.style.borderColor = 'var(--clr-green)';
-  qrBox.style.background = 'rgba(46, 62, 39, 0.05)';
-  
-  const qrIcon = qrBox.querySelector('.fa-qrcode');
-  if (qrIcon) {
-    qrIcon.className = 'fas fa-check-circle';
-    qrIcon.style.color = 'var(--clr-green)';
-    qrIcon.style.opacity = '0.9';
-    qrIcon.style.fontSize = '4rem';
+const isRazorpayConfigured = () => {
+  return typeof RAZORPAY_CONFIG !== 'undefined' && 
+         RAZORPAY_CONFIG.keyId && 
+         !RAZORPAY_CONFIG.keyId.includes('YOUR_RAZORPAY_KEY_ID');
+};
+
+async function saveOrderAndFinish(orderNumber, orderData) {
+  let dbSavePromise = Promise.resolve();
+  if (isSupabaseConfigured() && supabaseClient) {
+    dbSavePromise = supabaseClient.from('orders')
+      .insert([orderData], { count: null, returning: 'minimal' })
+      .then(({ data, error }) => {
+        if (error) throw error;
+        console.log('Order successfully written to Supabase:', orderNumber);
+      })
+      .catch(err => {
+        console.error('Supabase write failure. Order processed locally:', err);
+      });
   }
   
-  const hint = document.querySelector('.qr-hint');
-  if (hint) {
-    hint.innerHTML = '<span style="color: var(--clr-green); font-weight: 600;"><i class="fas fa-check"></i> QR Code Scanned & Approved</span>';
+  await dbSavePromise;
+  triggerSuccessReceipt(orderNumber);
+}
+
+async function executeOnlinePayment(orderNumber, orderData) {
+  if (isRazorpayConfigured() && typeof Razorpay !== 'undefined') {
+    const options = {
+      key: RAZORPAY_CONFIG.keyId,
+      amount: grandTotal * 100,
+      currency: "INR",
+      name: "GO MATA ORIGINAL GHEE",
+      description: `Payment for Order ${orderNumber}`,
+      image: "assets/brand_logo_text.png",
+      handler: function (response) {
+        orderData.payment_status = `Paid (Razorpay ID: ${response.razorpay_payment_id})`;
+        saveOrderAndFinish(orderNumber, orderData);
+      },
+      prefill: {
+        name: orderData.customer_name,
+        email: orderData.customer_email,
+        contact: orderData.customer_phone
+      },
+      theme: {
+        color: "#65371B"
+      },
+      modal: {
+        ondismiss: function() {
+          alert("Payment was cancelled. You can try again to place your order.");
+        }
+      }
+    };
+    
+    const rzp = new Razorpay(options);
+    rzp.open();
+  } else {
+    // Razorpay fallback simulation
+    elements.loadingOverlay.classList.add('active');
+    
+    const statuses = [
+      { time: 0, text: 'Opening Razorpay secure payment interface...' },
+      { time: 800, text: 'Awaiting client authorization response...' },
+      { time: 1600, text: 'Transaction authorized (Demo Mode)...' },
+      { time: 2400, text: 'Finalizing database records...' }
+    ];
+
+    statuses.forEach(stage => {
+      setTimeout(() => {
+        elements.loadingStatus.textContent = stage.text;
+      }, stage.time);
+    });
+
+    orderData.payment_status = `Paid (Simulated - No Credentials)`;
+
+    setTimeout(async () => {
+      await saveOrderAndFinish(orderNumber, orderData);
+      elements.loadingOverlay.classList.remove('active');
+    }, 3000);
   }
-});
+}
+
+async function executeCODPayment(orderNumber, orderData) {
+  elements.loadingOverlay.classList.add('active');
+  elements.loadingStatus.textContent = 'Processing Cash on Delivery registration...';
+  
+  orderData.payment_status = "Pending COD";
+  
+  setTimeout(async () => {
+    await saveOrderAndFinish(orderNumber, orderData);
+    elements.loadingOverlay.classList.remove('active');
+  }, 1000);
+}
 
 // --- SUBMIT ORDER & GATEWAY SIMULATION ---
 async function handleOrderSubmission() {
@@ -692,42 +657,11 @@ async function handleOrderSubmission() {
     status: 'Pending'
   };
 
-  // Launch simulated secure payment screen overlay
-  elements.loadingOverlay.classList.add('active');
-  
-  // Set stage statuses sequentially to feel like a real banking routing
-  const statuses = [
-    { time: 0, text: 'Establishing secure handshake with banking routing nodes...' },
-    { time: 800, text: 'Securing credentials and verifying anti-fraud handshakes...' },
-    { time: 1600, text: 'Transaction authorized! Generating official invoices...' },
-    { time: 2400, text: 'Finalizing order records...' }
-  ];
-
-  statuses.forEach(stage => {
-    setTimeout(() => {
-      elements.loadingStatus.textContent = stage.text;
-    }, stage.time);
-  });
-
-  // Save to Supabase (non-blocking for UI simulation timing)
-  let dbSavePromise = Promise.resolve();
-  if (isSupabaseConfigured() && supabaseClient) {
-    dbSavePromise = supabaseClient.from('orders').insert([orderData])
-      .then(({ data, error }) => {
-        if (error) throw error;
-        console.log('Order successfully written to Supabase:', orderNumber);
-      })
-      .catch(err => {
-        console.error('Supabase write failure. Order processed locally:', err);
-      });
+  if (currentPaymentMethod === 'cod') {
+    await executeCODPayment(orderNumber, orderData);
+  } else {
+    await executeOnlinePayment(orderNumber, orderData);
   }
-
-  // Open Receipt Modal after simulation completes
-  setTimeout(async () => {
-    await dbSavePromise; // Ensure DB try finished before resolving UI
-    elements.loadingOverlay.classList.remove('active');
-    triggerSuccessReceipt(orderNumber);
-  }, 3000);
 }
 
 // --- TRIGGER SUCCESS RECEIPT ---

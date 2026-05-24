@@ -6,3 +6,7 @@ const SUPABASE_CONFIG = {
   url: "https://your-project-id.supabase.co",
   anonKey: "your-anon-public-key-here"
 };
+
+const RAZORPAY_CONFIG = {
+  keyId: "YOUR_RAZORPAY_KEY_ID" // Replace with your actual Key ID starting with rzp_test_ or rzp_live_
+};

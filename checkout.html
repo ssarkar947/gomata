@@ -173,90 +173,29 @@
             </div>
           </div>
 
-          <!-- Step 4: Payment Simulation -->
+          <!-- Step 4: Payment Selection -->
           <div class="checkout-step-card" id="step-payment">
             <h3 class="step-title"><span class="step-num">4</span> Payment Method</h3>
             <div class="payment-tabs">
-              <button type="button" class="payment-tab-btn active" data-target="payment-upi" id="tab-upi">
-                <i class="fas fa-mobile-alt"></i> UPI / QR Code
-              </button>
-              <button type="button" class="payment-tab-btn" data-target="payment-card" id="tab-card">
-                <i class="far fa-credit-card"></i> Card Payment
+              <button type="button" class="payment-tab-btn active" data-target="payment-razorpay" id="tab-razorpay">
+                <i class="fas fa-credit-card"></i> Pay Online (UPI, Cards, Netbanking)
               </button>
               <button type="button" class="payment-tab-btn" data-target="payment-cod" id="tab-cod">
-                <i class="fas fa-hand-holding-rupee"></i> Cash on Delivery
+                <i class="fas fa-hand-holding-rupee"></i> Cash on Delivery (COD)
               </button>
             </div>
 
-            <!-- Tab Content: UPI -->
-            <div class="payment-tab-content active" id="payment-upi">
-              <div class="upi-sim-box">
-                <div class="qr-container">
-                  <!-- Simulated Interactive QR Code -->
-                  <div class="qr-box">
-                    <div class="qr-code-placeholder" id="simulated-qr">
-                      <div class="qr-corner top-left"></div>
-                      <div class="qr-corner top-right"></div>
-                      <div class="qr-corner bottom-left"></div>
-                      <div class="qr-center-logo">
-                        <i class="fas fa-cow" style="color: var(--clr-primary); font-size: 1.5rem;"></i>
-                      </div>
-                      <i class="fas fa-qrcode" style="font-size: 5rem; color: var(--clr-primary); opacity: 0.15;"></i>
-                    </div>
-                    <span class="qr-hint">Scan with GPay, PhonePe, or Paytm</span>
-                  </div>
-                  <div class="qr-text-info">
-                    <h4>Pay Using QR Code</h4>
-                    <p>Scan the QR code with any UPI app to transfer the amount instantly. Once paid, confirm below.</p>
-                    <div class="upi-id-badge">
-                      <span>UPI ID: <strong>gomataoriginal@okaxis</strong></span>
-                      <button type="button" class="copy-btn" onclick="copyUPI()" id="copy-upi-btn"><i class="far fa-copy"></i></button>
-                    </div>
-                  </div>
+            <!-- Tab Content: Razorpay -->
+            <div class="payment-tab-content active" id="payment-razorpay">
+              <div class="upi-sim-box" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-xs); padding: var(--space-md);">
+                <div style="font-size: 2.5rem; color: var(--clr-primary); margin-bottom: 8px;">
+                  <i class="fas fa-shield-halved"></i>
                 </div>
-
-                <div class="or-divider"><span>OR ENTER UPI ID</span></div>
-
-                <div class="form-group" style="margin-bottom: 0;">
-                  <label for="upi-id-input">Your UPI ID <span class="required">*</span></label>
-                  <div class="input-with-button">
-                    <input type="text" id="upi-id-input" placeholder="e.g. mobile@upi" pattern=".+@.+">
-                    <button type="button" class="btn btn-outline" id="verify-upi-btn" onclick="verifyUPI()">Verify</button>
-                  </div>
-                  <span class="success-message" id="upi-success"></span>
-                  <span class="error-message" id="upi-error"></span>
+                <h4>Secure Online Payment</h4>
+                <p>Upon clicking "Place Order", you will be redirected to the secure **Razorpay** checkout sheet to complete your payment via UPI (GPay, PhonePe), Credit/Debit Cards, Netbanking, or Wallets.</p>
+                <div style="display: flex; gap: var(--space-xs); align-items: center; justify-content: center; margin-top: 10px; opacity: 0.8; font-size: 0.72rem; color: var(--clr-green);">
+                  <i class="fas fa-lock"></i> 256-bit SSL Secure Payment Transaction
                 </div>
-              </div>
-            </div>
-
-            <!-- Tab Content: Card -->
-            <div class="payment-tab-content" id="payment-card">
-              <div class="card-form-grid">
-                
-                <div class="form-group col-full">
-                  <label for="card-number">Card Number <span class="required">*</span></label>
-                  <div class="input-with-icon font-mono">
-                    <i class="far fa-credit-card input-icon"></i>
-                    <input type="text" id="card-number" placeholder="4111 2222 3333 4444" pattern="[0-9\s]{16,19}" maxlength="19">
-                  </div>
-                  <span class="error-message" id="card-num-error"></span>
-                </div>
-
-                <div class="form-group">
-                  <label for="card-expiry">Expiry Date <span class="required">*</span></label>
-                  <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" class="font-mono">
-                  <span class="error-message" id="card-expiry-error"></span>
-                </div>
-
-                <div class="form-group">
-                  <label for="card-cvv">CVV <span class="required">*</span></label>
-                  <div class="input-with-icon font-mono">
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" id="card-cvv" placeholder="123" maxlength="3">
-                  </div>
-                  <span class="error-message" id="card-cvv-error"></span>
-                </div>
-
               </div>
             </div>
 
@@ -453,8 +392,9 @@
     </div>
   </div>
 
-  <!-- Supabase SDK and Config -->
+  <!-- Supabase SDK, Razorpay SDK and Config -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="config.js"></script>
 
   <!-- JavaScript Files -->
