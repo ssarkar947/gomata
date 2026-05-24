@@ -7,4 +7,5 @@ Thumbs.db
 node_modules/
 
 # Local credentials
-config.js
+# config.js is now tracked so Netlify builds succeed.
+
