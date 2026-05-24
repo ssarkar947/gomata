@@ -80,6 +80,9 @@
           <button class="nav-tab-link" data-tab="tab-products">
             <i class="fas fa-boxes-stacked"></i> Products Catalog
           </button>
+          <button class="nav-tab-link" data-tab="tab-coupons">
+            <i class="fas fa-ticket"></i> Coupons Manager
+          </button>
         </nav>
         <div class="sidebar-footer">
           <p>FSSAI No. 22823039000092</p>
@@ -234,6 +237,41 @@
             </table>
           </div>
         </section>
+        
+        <!-- ==================== TAB D: COUPONS ==================== -->
+        <section class="tab-panel" id="tab-coupons">
+          <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
+            <div>
+              <h2>Coupons Manager</h2>
+              <p>Create and manage discount codes for the checkout process.</p>
+            </div>
+            <button class="btn btn-admin-primary" id="add-coupon-btn">
+              <i class="fas fa-plus"></i> Add New Coupon
+            </button>
+          </div>
+
+          <!-- Coupons Table Box -->
+          <div class="table-container">
+            <table class="admin-table" id="coupons-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Type</th>
+                  <th>Value</th>
+                  <th>Min Order (INR)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="coupons-table-body">
+                <!-- Dynamically filled -->
+                <tr>
+                  <td colspan="6" class="text-center py-md">Loading coupons...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
       </main>
     </div>
@@ -274,7 +312,12 @@
 
             <div class="form-group col-full">
               <label for="prod-image">Image File / Asset URL <span class="required">*</span></label>
-              <input type="text" id="prod-image" placeholder="assets/product_jar.jpg" required>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="prod-image" placeholder="assets/product_jar.jpg" required style="flex: 2;">
+                <input type="file" id="prod-image-file" accept="image/*" style="display: none;">
+                <button type="button" class="btn btn-outline-admin" id="trigger-upload-btn" style="height: 46px; font-size: 0.8rem; white-space: nowrap;"><i class="fas fa-cloud-arrow-up"></i> Upload File</button>
+              </div>
+              <span class="upload-progress-text" id="upload-status" style="font-size: 0.72rem; color: var(--clr-primary-light); margin-top: 4px; display: block;"></span>
             </div>
 
             <div class="form-group col-full">
@@ -350,6 +393,58 @@
           <span class="form-error-msg" id="form-error"></span>
           <button type="button" class="btn btn-outline-admin" id="btn-cancel-form">Cancel</button>
           <button type="submit" class="btn btn-admin-primary" id="btn-save-form">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== COUPON FORM MODAL ==================== -->
+  <div class="admin-modal-overlay" id="coupon-modal">
+    <div class="admin-modal-container" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3 id="coupon-modal-title">Add New Coupon</h3>
+        <button class="close-modal-btn" id="close-coupon-btn">&times;</button>
+      </div>
+      
+      <form id="coupon-catalog-form">
+        <div class="modal-body">
+          <div class="modal-form-grid" style="grid-template-columns: 1fr;">
+            
+            <div class="form-group">
+              <label for="coup-code">Coupon Code <span class="required">*</span></label>
+              <input type="text" id="coup-code" placeholder="e.g. SAVE20" style="text-transform: uppercase;" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="coup-type">Coupon Type <span class="required">*</span></label>
+              <select id="coup-type" required>
+                <option value="percentage" selected>Percentage Discount (% Off)</option>
+                <option value="free_shipping">Free Standard Shipping</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="coup-value-group">
+              <label for="coup-value">Discount Value <span class="required">*</span></label>
+              <input type="number" id="coup-value" placeholder="10" min="0" max="100" required>
+            </div>
+
+            <div class="form-group">
+              <label for="coup-min-val">Min Order Value (INR) <span class="required">*</span></label>
+              <input type="number" id="coup-min-val" placeholder="0" min="0" value="0" required>
+            </div>
+
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-bottom: 0;">
+              <input type="checkbox" id="coup-active" checked style="width: auto; height: auto; margin-top: 2px;">
+              <label for="coup-active" style="text-transform: none; font-size: 0.85rem; cursor: pointer;">Coupon is Active</label>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <span class="form-error-msg" id="coupon-form-error"></span>
+          <button type="button" class="btn btn-outline-admin" id="btn-cancel-coupon">Cancel</button>
+          <button type="submit" class="btn btn-admin-primary" id="btn-save-coupon">Save Coupon</button>
         </div>
       </form>
     </div>

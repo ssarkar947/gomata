@@ -938,3 +938,42 @@ a {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Coupon Badges & Image Upload styling */
+.status-badge.active {
+  background-color: hsl(102, 50%, 92%);
+  color: var(--clr-green);
+}
+
+.status-badge.inactive {
+  background-color: hsl(0, 90%, 95%);
+  color: #c94a4a;
+}
+
+.upload-progress-text {
+  font-weight: 500;
+  animation: fadeIn 0.2s ease;
+}
+
+.btn-mini-duplicate {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background-color: var(--clr-bg-alt);
+  color: var(--clr-primary);
+  border: 1px solid var(--clr-border);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.btn-mini-duplicate:hover {
+  background-color: var(--clr-primary-light);
+  color: var(--clr-white);
+  border-color: var(--clr-primary-light);
+}
+
+.btn-icon.duplicate-btn:hover {
+  border-color: var(--clr-green);
+  color: var(--clr-green);
+}
+
+

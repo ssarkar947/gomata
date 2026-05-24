@@ -19,6 +19,7 @@ if (isSupabaseConfigured()) {
 // Global Application Data Cache
 let ordersCache = [];
 let productsCache = [];
+let couponsCache = [];
 let editingProductId = null;
 
 // DOM Elements
@@ -131,7 +132,8 @@ async function loadStoreData() {
   try {
     await Promise.all([
       loadOrders(),
-      loadProducts()
+      loadProducts(),
+      loadCoupons()
     ]);
     renderMetrics();
   } catch (err) {
@@ -342,6 +344,9 @@ function renderOrdersTable() {
                   <p><strong>Mobile Contact:</strong> +91 ${order.customer_phone}</p>
                   <p style="margin-top: 8px;"><strong>Delivery Speed:</strong> <span style="text-transform: capitalize; font-weight: 600; color: var(--clr-primary);">${order.shipping_method} Shipping</span></p>
                   <p><strong>Payment Status:</strong> <span style="font-weight: 600; color: var(--clr-accent-gold);">${order.payment_status}</span></p>
+                  <button type="button" class="btn btn-outline-admin" onclick="printInvoice('${order.id}')" style="margin-top: 12px; width: 100%; height: 36px; padding: 4px 12px; font-size: 0.8rem; justify-content: center;">
+                    <i class="fas fa-print"></i> Print Packing Slip
+                  </button>
                 </div>
               </div>
 
@@ -414,6 +419,9 @@ function renderProductsTable() {
             <button class="btn-icon edit-btn" onclick="openEditProductModal('${product.id}')" title="Edit Catalog Entry">
               <i class="far fa-edit"></i>
             </button>
+            <button class="btn-icon duplicate-btn" onclick="duplicateProduct('${product.id}')" title="Duplicate Product">
+              <i class="far fa-copy"></i>
+            </button>
             <button class="btn-icon delete-btn" onclick="deleteProduct('${product.id}')" title="Delete Catalog Entry">
               <i class="far fa-trash-alt"></i>
             </button>
@@ -433,6 +441,135 @@ function setupFormListeners() {
 
   // Form submission
   views.productForm.addEventListener('submit', handleFormSubmit);
+
+  // Image Upload Listeners
+  const triggerBtn = document.getElementById('trigger-upload-btn');
+  const fileInput = document.getElementById('prod-image-file');
+  const statusEl = document.getElementById('upload-status');
+
+  if (triggerBtn && fileInput) {
+    triggerBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      statusEl.textContent = 'Uploading...';
+      statusEl.style.color = 'var(--clr-primary-light)';
+
+      if (!isSupabaseConfigured() || !supabaseClient) {
+        statusEl.textContent = 'Failed: Supabase not configured.';
+        statusEl.style.color = '#c94a4a';
+        return;
+      }
+
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${fileExt}`;
+        const filePath = fileName;
+
+        const { data, error } = await supabaseClient.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabaseClient.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        document.getElementById('prod-image').value = publicUrl;
+        statusEl.textContent = 'Image uploaded successfully!';
+        statusEl.style.color = 'var(--clr-green)';
+      } catch (err) {
+        console.error('File upload error:', err);
+        statusEl.textContent = `Upload failed: ${err.message || 'Make sure product-images bucket exists & is public.'}`;
+        statusEl.style.color = '#c94a4a';
+      }
+    });
+  }
+
+  // Coupon manager dialog setup
+  const couponModal = document.getElementById('coupon-modal');
+  const couponForm = document.getElementById('coupon-catalog-form');
+  const addCouponBtn = document.getElementById('add-coupon-btn');
+  const closeCouponBtn = document.getElementById('close-coupon-btn');
+  const cancelCouponBtn = document.getElementById('btn-cancel-coupon');
+  const coupCodeInput = document.getElementById('coup-code');
+  const coupTypeSelect = document.getElementById('coup-type');
+  const coupValueInput = document.getElementById('coup-value');
+  const coupMinValInput = document.getElementById('coup-min-val');
+  const coupActiveInput = document.getElementById('coup-active');
+  const couponFormError = document.getElementById('coupon-form-error');
+
+  if (addCouponBtn) {
+    addCouponBtn.addEventListener('click', () => {
+      couponForm.reset();
+      couponFormError.textContent = '';
+      couponModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+
+  const closeCouponModal = () => {
+    couponModal.classList.remove('active');
+    document.body.style.overflow = '';
+    couponForm.reset();
+    couponFormError.textContent = '';
+  };
+
+  if (closeCouponBtn) closeCouponBtn.addEventListener('click', closeCouponModal);
+  if (cancelCouponBtn) cancelCouponBtn.addEventListener('click', closeCouponModal);
+
+  if (coupTypeSelect) {
+    coupTypeSelect.addEventListener('change', () => {
+      const valGroup = document.getElementById('coup-value-group');
+      if (coupTypeSelect.value === 'free_shipping') {
+        valGroup.style.display = 'none';
+        coupValueInput.required = false;
+        coupValueInput.value = '0';
+      } else {
+        valGroup.style.display = 'block';
+        coupValueInput.required = true;
+        coupValueInput.value = '';
+      }
+    });
+  }
+
+  if (couponForm) {
+    couponForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      couponFormError.textContent = '';
+      if (!supabaseClient) return;
+
+      const code = coupCodeInput.value.trim().toUpperCase();
+      const type = coupTypeSelect.value;
+      const value = type === 'free_shipping' ? 0 : parseInt(coupValueInput.value) || 0;
+      const min_order_value = parseInt(coupMinValInput.value) || 0;
+      const active = coupActiveInput.checked;
+
+      const saveBtn = document.getElementById('btn-save-coupon');
+      const origText = saveBtn.textContent;
+      saveBtn.textContent = 'Saving...';
+      saveBtn.disabled = true;
+
+      try {
+        const { error } = await supabaseClient.from('coupons')
+          .upsert([{ code, type, value, min_order_value, active }]);
+
+        if (error) throw error;
+
+        showToast('Coupon saved successfully!', 'success');
+        closeCouponModal();
+        loadCoupons();
+      } catch (err) {
+        console.error('Failed to save coupon:', err);
+        couponFormError.textContent = err.message || 'Database transaction error.';
+      } finally {
+        saveBtn.textContent = origText;
+        saveBtn.disabled = false;
+      }
+    });
+  }
 }
 
 function openProductModal() {
@@ -629,3 +766,141 @@ function showToast(message, type = 'success') {
     }, 300);
   }, 3500);
 }
+
+// --- DYNAMIC INVOICE PRINT POPUP ---
+window.printInvoice = function(orderId) {
+  window.open(`invoice_print.html?orderId=${orderId}`, '_blank', 'width=900,height=750,toolbar=0,location=0,menubar=0');
+};
+
+// --- PRODUCT DUPLICATION ---
+window.duplicateProduct = function(productId) {
+  const p = productsCache.find(prod => prod.id === productId);
+  if (!p) return;
+
+  views.modalTitle.textContent = 'Duplicate Product Entry';
+  views.prodId.disabled = false;
+  editingProductId = null;
+
+  views.prodId.value = `${p.id}-copy`;
+  views.prodTitle.value = `${p.title} (Copy)`;
+  views.prodPrice.value = p.price;
+  views.prodOrigPrice.value = p.original_price || '';
+  views.prodImage.value = p.image;
+  views.prodDesc.value = p.description;
+
+  views.specIngredients.value = p.details?.Ingredients || '';
+  views.specAllergen.value = p.details?.['Allergen Info'] || '';
+  views.specFssai.value = p.details?.['FSSAI Lic. No.'] || '22823039000092';
+  views.specMfg.value = p.details?.['Manufactured By'] || '';
+
+  views.nutrEnergy.value = p.nutrition?.Energy || '';
+  views.nutrFat.value = p.nutrition?.['Total Fat'] || '';
+  views.nutrSatFat.value = p.nutrition?.['Saturated Fat'] || '';
+  views.nutrChol.value = p.nutrition?.Cholesterol || '';
+
+  views.sizeRowsContainer.innerHTML = '';
+  if (p.sizes && Array.isArray(p.sizes)) {
+    p.sizes.forEach(sz => {
+      addFormSizeRow(sz.label, sz.price);
+    });
+  } else {
+    addFormSizeRow();
+  }
+
+  openProductModal();
+};
+
+// --- COUPON CRUD AND CRUD OPERATIONS ---
+async function loadCoupons() {
+  if (!supabaseClient) return;
+
+  try {
+    const { data, error } = await supabaseClient.from('coupons')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    couponsCache = data || [];
+    renderCouponsTable();
+  } catch (err) {
+    console.error('Failed to load coupons:', err);
+    showToast('Failed to load coupons database.', 'error');
+  }
+}
+
+function renderCouponsTable() {
+  const tbody = document.getElementById('coupons-table-body');
+  if (!tbody) return;
+
+  if (couponsCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center py-md">No coupons configured yet.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = couponsCache.map(coupon => {
+    const statusClass = coupon.active ? 'active' : 'inactive';
+    const statusText = coupon.active ? 'Active' : 'Inactive';
+    const valText = coupon.type === 'percentage' ? `${coupon.value}%` : 'FREE Standard Shipping';
+
+    return `
+      <tr>
+        <td class="font-bold">${coupon.code}</td>
+        <td style="text-transform: capitalize;">${coupon.type.replace('_', ' ')}</td>
+        <td class="font-mono">${valText}</td>
+        <td class="font-mono">₹${coupon.min_order_value}</td>
+        <td>
+          <span class="status-badge ${statusClass}">${statusText}</span>
+        </td>
+        <td>
+          <div class="action-btn-group">
+            <button class="btn-icon edit-btn" onclick="toggleCouponStatus('${coupon.code}', ${!coupon.active})" title="Toggle Active Status">
+              <i class="fas ${coupon.active ? 'fa-toggle-on' : 'fa-toggle-off'}"></i>
+            </button>
+            <button class="btn-icon delete-btn" onclick="deleteCoupon('${coupon.code}')" title="Delete Coupon">
+              <i class="far fa-trash-alt"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.toggleCouponStatus = async function(code, newStatus) {
+  if (!supabaseClient) return;
+
+  try {
+    const { error } = await supabaseClient.from('coupons')
+      .update({ active: newStatus })
+      .eq('code', code);
+
+    if (error) throw error;
+    showToast(`Coupon "${code}" status updated.`, 'success');
+    loadCoupons();
+  } catch (err) {
+    console.error('Failed to toggle coupon status:', err);
+    showToast('Failed to update coupon status.', 'error');
+  }
+};
+
+window.deleteCoupon = async function(code) {
+  if (!supabaseClient) return;
+  if (!confirm(`Are you sure you want to delete coupon "${code}"?`)) return;
+
+  try {
+    const { error } = await supabaseClient.from('coupons')
+      .delete()
+      .eq('code', code);
+
+    if (error) throw error;
+    showToast(`Coupon "${code}" deleted.`, 'success');
+    loadCoupons();
+  } catch (err) {
+    console.error('Failed to delete coupon:', err);
+    showToast('Failed to delete coupon.', 'error');
+  }
+};

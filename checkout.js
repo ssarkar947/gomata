@@ -268,9 +268,9 @@ function calculateTotals() {
 
   // 1. Calculate Coupon Discount
   discountAmount = 0;
-  if (appliedCoupon === 'GOMATA10') {
-    discountAmount = Math.round(subtotal * 0.10);
-    elements.discountPercent.textContent = '10%';
+  if (appliedCoupon && appliedCoupon.type === 'percentage') {
+    discountAmount = Math.round(subtotal * (appliedCoupon.value / 100));
+    elements.discountPercent.textContent = `${appliedCoupon.value}%`;
     elements.discountDisplay.textContent = `-₹${discountAmount.toLocaleString('en-IN')}`;
     elements.discountRow.style.display = 'flex';
   } else {
@@ -282,8 +282,8 @@ function calculateTotals() {
   
   // Standard Delivery pricing logic
   if (activeShipping === 'standard') {
-    // If FREESHIP coupon is applied, shipping is free regardless of subtotal
-    if (appliedCoupon === 'FREESHIP' || subtotal >= 999) {
+    // If free_shipping coupon is applied, shipping is free regardless of subtotal
+    if ((appliedCoupon && appliedCoupon.type === 'free_shipping') || subtotal >= 999) {
       shippingCost = 0;
       elements.shippingDisplay.textContent = 'FREE';
       elements.shippingDisplay.style.color = 'var(--clr-green)';
@@ -300,7 +300,7 @@ function calculateTotals() {
 
   // Show standard courier label based on eligibility
   const stdLabel = document.getElementById('standard-shipping-cost');
-  if (subtotal >= 999 || appliedCoupon === 'FREESHIP') {
+  if (subtotal >= 999 || (appliedCoupon && appliedCoupon.type === 'free_shipping')) {
     stdLabel.textContent = 'FREE';
     stdLabel.style.color = 'var(--clr-green)';
   } else {
@@ -323,7 +323,7 @@ function calculateTotals() {
 }
 
 // --- APPLY PROMO CODE ---
-function applyCoupon() {
+async function applyCoupon() {
   const code = elements.couponInput.value.trim().toUpperCase();
   elements.couponFeedback.className = 'coupon-feedback'; // reset
   
@@ -333,21 +333,62 @@ function applyCoupon() {
     return;
   }
 
-  if (code === 'GOMATA10') {
-    appliedCoupon = 'GOMATA10';
-    elements.couponFeedback.textContent = 'Promo code GOMATA10 (10% OFF) applied successfully!';
-    elements.couponFeedback.classList.add('success');
-  } else if (code === 'FREESHIP') {
-    appliedCoupon = 'FREESHIP';
-    elements.couponFeedback.textContent = 'Promo code FREESHIP (Free Standard Shipping) applied!';
-    elements.couponFeedback.classList.add('success');
-  } else {
-    elements.couponFeedback.textContent = 'Invalid promo code. Try GOMATA10 or FREESHIP.';
-    elements.couponFeedback.classList.add('error');
-    appliedCoupon = null;
-  }
+  elements.applyCouponBtn.disabled = true;
+  elements.couponFeedback.textContent = 'Checking...';
+  elements.couponFeedback.className = 'coupon-feedback info';
 
-  calculateTotals();
+  try {
+    let coupon = null;
+
+    if (isSupabaseConfigured() && supabaseClient) {
+      const { data, error } = await supabaseClient
+        .from('coupons')
+        .select('*')
+        .eq('code', code)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase coupon check failed:', error);
+      } else {
+        coupon = data;
+      }
+    }
+
+    // Offline fallback for demo/test purposes if Supabase fails or isn't configured
+    if (!coupon) {
+      const offlineCoupons = {
+        'GOMATA10': { code: 'GOMATA10', type: 'percentage', value: 10, min_order_value: 0, active: true },
+        'FREESHIP': { code: 'FREESHIP', type: 'free_shipping', value: 0, min_order_value: 999, active: true }
+      };
+      if (offlineCoupons[code]) {
+        coupon = offlineCoupons[code];
+      }
+    }
+
+    if (!coupon) {
+      elements.couponFeedback.textContent = 'Invalid or expired promo code.';
+      elements.couponFeedback.className = 'coupon-feedback error';
+      appliedCoupon = null;
+    } else if (subtotal < coupon.min_order_value) {
+      elements.couponFeedback.textContent = `This coupon requires a minimum subtotal of ₹${coupon.min_order_value}.`;
+      elements.couponFeedback.className = 'coupon-feedback error';
+      appliedCoupon = null;
+    } else {
+      appliedCoupon = coupon;
+      const benefitText = coupon.type === 'percentage' ? `${coupon.value}% OFF` : 'Free Standard Shipping';
+      elements.couponFeedback.textContent = `Promo code ${coupon.code} (${benefitText}) applied successfully!`;
+      elements.couponFeedback.className = 'coupon-feedback success';
+    }
+  } catch (err) {
+    console.error('Coupon error:', err);
+    elements.couponFeedback.textContent = 'Error verifying code. Try again.';
+    elements.couponFeedback.className = 'coupon-feedback error';
+    appliedCoupon = null;
+  } finally {
+    elements.applyCouponBtn.disabled = false;
+    calculateTotals();
+  }
 }
 
 // Interactive helper to click tag suggestion
