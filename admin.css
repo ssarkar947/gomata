@@ -785,6 +785,13 @@ a {
   transition: var(--transition);
 }
 
+.admin-modal-container form {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
 .admin-modal-overlay.active .admin-modal-container {
   transform: translateY(0);
 }
