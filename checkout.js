@@ -550,34 +550,95 @@ async function saveOrderAndFinish(orderNumber, orderData) {
 
 async function executeOnlinePayment(orderNumber, orderData) {
   if (isRazorpayConfigured() && typeof Razorpay !== 'undefined') {
-    const options = {
-      key: RAZORPAY_CONFIG.keyId,
-      amount: grandTotal * 100,
-      currency: "INR",
-      name: "GO MATA ORIGINAL GHEE",
-      description: `Payment for Order ${orderNumber}`,
-      image: "assets/brand_logo_text.png",
-      handler: function (response) {
-        orderData.payment_status = `Paid (Razorpay ID: ${response.razorpay_payment_id})`;
-        saveOrderAndFinish(orderNumber, orderData);
-      },
-      prefill: {
-        name: orderData.customer_name,
-        email: orderData.customer_email,
-        contact: orderData.customer_phone
-      },
-      theme: {
-        color: "#65371B"
-      },
-      modal: {
-        ondismiss: function() {
-          alert("Payment was cancelled. You can try again to place your order.");
-        }
+    elements.loadingOverlay.classList.add('active');
+    elements.loadingStatus.textContent = 'Initiating secure transaction...';
+
+    try {
+      // 1. Create order on backend
+      const createRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: grandTotal * 100, // amount in paise
+          receipt: orderNumber
+        })
+      });
+
+      const orderResult = await createRes.json();
+      if (!createRes.ok) {
+        throw new Error(orderResult.error || 'Failed to create order on backend.');
       }
-    };
-    
-    const rzp = new Razorpay(options);
-    rzp.open();
+
+      elements.loadingOverlay.classList.remove('active');
+
+      // 2. Open Razorpay modal with order_id
+      const options = {
+        key: RAZORPAY_CONFIG.keyId,
+        amount: orderResult.amount,
+        currency: orderResult.currency,
+        name: "GO MATA ORIGINAL GHEE",
+        description: `Payment for Order ${orderNumber}`,
+        image: "assets/brand_logo_text.png",
+        order_id: orderResult.order_id,
+        handler: async function (response) {
+          // Verify signature on backend
+          elements.loadingOverlay.classList.add('active');
+          elements.loadingStatus.textContent = 'Verifying secure payment signature...';
+
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok) {
+              throw new Error(verifyData.error || 'Payment signature verification failed.');
+            }
+
+            // Signature verified successfully!
+            orderData.payment_status = `Paid (Verified ID: ${response.razorpay_payment_id})`;
+            await saveOrderAndFinish(orderNumber, orderData);
+          } catch (err) {
+            console.error('Signature verification error:', err);
+            alert(`Payment verification failed: ${err.message || 'Verification mismatch.'}`);
+          } finally {
+            elements.loadingOverlay.classList.remove('active');
+          }
+        },
+        prefill: {
+          name: orderData.customer_name,
+          email: orderData.customer_email,
+          contact: orderData.customer_phone
+        },
+        theme: {
+          color: "#65371B"
+        },
+        modal: {
+          ondismiss: function() {
+            alert("Payment checkout was cancelled. You can try placing the order again.");
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      
+      // Handle payment.failed event
+      rzp.on('payment.failed', function (response) {
+        alert(`Payment failed: ${response.error.description} (Code: ${response.error.code})`);
+      });
+
+      rzp.open();
+    } catch (err) {
+      console.error('Error in Razorpay setup:', err);
+      elements.loadingOverlay.classList.remove('active');
+      alert(`Could not initiate payment: ${err.message || 'Please check your connection.'}`);
+    }
   } else {
     // Razorpay fallback simulation
     elements.loadingOverlay.classList.add('active');
