@@ -97,7 +97,9 @@ async function handleCreateOrder(req, res) {
     });
   } catch (err) {
     console.error('Failed to create Razorpay order:', err);
-    return sendJsonResponse(res, 500, { error: err.message || 'Internal server error while creating Razorpay order.' });
+    // Extract precise Razorpay error details if available
+    const errorDetails = (err.error && err.error.description) || err.description || err.message || 'Internal server error while creating Razorpay order.';
+    return sendJsonResponse(res, 500, { error: errorDetails });
   }
 }
 
